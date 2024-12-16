@@ -2,6 +2,89 @@ from tkinter import *
 from tkinter import simpledialog
 import backend
 
+def get_selected_row(event):
+    global selected_tuple
+    try:
+        index = list1.curselection()[0]
+        selected_tuple = list1.get(index)
+        e1.delete(0, END)
+        e1.insert(END, selected_tuple[1])
+        e2.delete(0, END)
+        e2.insert(END, selected_tuple[2])
+        e3.delete(0, END)
+        e3.insert(END, selected_tuple[3])
+        e4.delete(0, END)
+        e4.insert(END, selected_tuple[4])
+        e5.delete(0, END)
+        e5.insert(END, selected_tuple[5])
+        e6.delete(0, END)
+        e6.insert(END, selected_tuple[8])
+    except IndexError:
+        # No item selected
+        selected_tuple = None
+
+
+def view_command():
+    list1.delete(0,END)
+    for row in backend.view():
+        list1.insert(END,row)
+
+def search_command():
+    list1.delete(0,END)
+    for row in backend.search(
+        fullname_text.get(),
+        phonenumber_text.get(),
+        linkedin_text.get(),
+        instagram_text.get(),
+        email_text.get(),
+        organization_var.get(),
+        organization_type_var.get(),
+        twitter_text.get()
+        ):
+            list1.insert(END,row)
+
+def add_command():
+    backend.insert(
+        fullname_text.get(),
+        phonenumber_text.get(),
+        linkedin_text.get(),
+        instagram_text.get(),
+        email_text.get(),
+        organization_var.get(),
+        organization_type_var.get(),
+        twitter_text.get()
+        )
+    list1.delete(0,END)
+    list1.insert(END,
+        fullname_text.get(),
+        phonenumber_text.get(),
+        linkedin_text.get(),
+        instagram_text.get(),
+        email_text.get(),
+        organization_var.get(),
+        organization_type_var.get(),
+        twitter_text.get())
+
+def delete_command():
+    backend.delete(selected_tuple[0])
+
+def update_command():
+    if selected_tuple:
+        backend.update(
+            fullname_text.get(),
+            phonenumber_text.get(),
+            linkedin_text.get(),
+            instagram_text.get(),
+            email_text.get(),
+            organization_var.get(),
+            organization_type_var.get(),
+            twitter_text.get(),
+            selected_tuple[0]  # Pass the ID as the last argument
+        )
+        view_command()  # Refresh the list to show updated data
+    else:
+        print("No item selected for update.")
+
 # Functions to add new organization or organization type
 def add_new_option(option_list, dropdown_var):
     new_option = simpledialog.askstring("Add New Option", "Enter new option:")
@@ -24,7 +107,7 @@ def update_dropdowns():
         org_type_menu.add_command(label=org_type, command=lambda value=org_type: organization_type_var.set(value))
 
 window = Tk()
-window.title("Data Entry Form")
+window.wm_title("IIJS Directory")
 
 # Labels
 Label(window, text="Full Name").grid(row=0,column=0)
@@ -36,24 +119,32 @@ Label(window, text="Organization").grid(row=1,column=2)
 Label(window, text="Organization Type").grid(row=1,column=4)
 Label(window, text="Twitter").grid(row=1,column=6)
 
-# Entry fields
+# Define StringVar variables before Entry widgets
 fullname_text = StringVar()
-Entry(window, textvariable=fullname_text).grid(row=0,column=1)
-
 phonenumber_text = StringVar()
-Entry(window, textvariable=phonenumber_text).grid(row=0,column=3)
-
 linkedin_text = StringVar()
-Entry(window, textvariable=linkedin_text).grid(row=0,column=5)
-
 instagram_text = StringVar()
-Entry(window, textvariable=instagram_text).grid(row=0,column=7)
-
 email_text = StringVar()
-Entry(window, textvariable=email_text).grid(row=1,column=1)
-
 twitter_text = StringVar()
-Entry(window, textvariable=twitter_text).grid(row=1,column=7)
+
+# Entry fields
+e1 = Entry(window, textvariable=fullname_text)
+e1.grid(row=0, column=1)
+
+e2 = Entry(window, textvariable=phonenumber_text)
+e2.grid(row=0, column=3)
+
+e3 = Entry(window, textvariable=linkedin_text)
+e3.grid(row=0, column=5)
+
+e4 = Entry(window, textvariable=instagram_text)
+e4.grid(row=0, column=7)
+
+e5 = Entry(window, textvariable=email_text)
+e5.grid(row=1, column=1)
+
+e6 = Entry(window, textvariable=twitter_text)
+e6.grid(row=1, column=7)
 
 # Dropdown options
 organization_options = ["OAS", "Inter-American Development Bank", "World Bank", ]
@@ -85,23 +176,25 @@ sb1.grid(row=2,column=5,rowspan=7)
 list1.configure(yscrollcommand=sb1.set)
 sb1.configure(command=list1.yview)
 
+list1.bind('<<ListboxSelect>>',get_selected_row)
+
 # View all contacts button
-b1=Button(window,text="View All", width=12)
+b1=Button(window,text="View All", width=12,command=view_command)
 b1.grid(row=2,column=6,columnspan=2)
 #Search Button
-b2=Button(window,text="Search", width=12)
+b2=Button(window,text="Search", width=12,command=search_command)
 b2.grid(row=3,column=6,columnspan=2)
 #Add entry Button
-b3=Button(window,text="Add Entry", width=12)
+b3=Button(window,text="Add Entry", width=12,command=add_command)
 b3.grid(row=4,column=6,columnspan=2)
 #Update Entry Button
-b4=Button(window,text="Update Selected", width=12)
+b4=Button(window,text="Update Selected", width=12,command=update_command)
 b4.grid(row=5,column=6,columnspan=2)
 #Delete Entry Button
-b5=Button(window,text="Delete Selected", width=12)
+b5=Button(window,text="Delete Selected", width=12,command=delete_command)
 b5.grid(row=6,column=6,columnspan=2)
 #Close Button
-b6=Button(window,text="Close", width=12)
+b6=Button(window,text="Close", width=12,command=window.destroy)
 b6.grid(row=7,column=6,columnspan=2)
 
 

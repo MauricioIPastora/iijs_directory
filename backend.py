@@ -29,7 +29,17 @@ def view():
 def search(full_name="", phone_number="", linkedin="", instagram="", email="", organization="", org_type="", twitter=""):
     conn=sqlite3.connect("contacts.db")
     cur=conn.cursor()
-    cur.execute("SELECT * FROM contact WHERE full_name=? OR phone_number=? OR linkedin=? OR instagram=? OR email=? OR organization=? OR org_type=? OR twitter=?", (full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter))
+    cur.execute("""
+        SELECT * FROM contact
+        WHERE full_name=?
+          OR phone_number=?
+          OR linkedin=?
+          OR instagram=?
+          OR email=?
+          OR organization=?
+          OR org_type=?
+          OR twitter=?
+          """, (full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter))
     rows=cur.fetchall()
     conn.close()
     return rows
@@ -43,15 +53,27 @@ def delete(id):
     conn.close()
 
 #update contacts
-def update(full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter):
+def update(full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter, id):
     conn=sqlite3.connect("contacts.db")
     cur=conn.cursor()
-    cur.execute("UPDATE contact SET full_name=? OR phone_number=? OR linkedin=? OR instagram=? OR email=? OR organization=? OR org_type=? OR twitter=? WHERE id=?",(full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter))
+    cur.execute("""
+                UPDATE contact
+                SET full_name=?,
+                  phone_number=?,
+                  linkedin=?,
+                  instagram=?,
+                  email=?,
+                  organization=?,
+                  org_type=?,
+                  twitter=?
+                WHERE id=?
+                """,
+                (full_name, phone_number, linkedin, instagram, email, organization, org_type, twitter, id)
+                )
     conn.commit()
     conn.close()
 
 # Create table and test insertion
 connect()
-update()
 print(view())
 
