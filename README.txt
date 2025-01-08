@@ -1,5 +1,4 @@
 # IIJS Directory
-### Video Demo: <URL HERE>
 ### Description: This project is a Contact Management Database designed for managing and organizing contact information.
 It features a user-friendly desktop interface built with Python's Tkinter library and a SQLite database for backend storage.
 The application supports operations like adding, viewing, updating, searching, and deleting contacts.
