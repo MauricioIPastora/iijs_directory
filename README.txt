@@ -16,7 +16,8 @@ The backend code manages the database operations using SQLite. It ensures data i
 The database is initialized through the connect() function, which creates the contacts.db file and the contact table, aswell as the organization table, and organization type table so when
 new organizations and organization types are added to the dropdown list, they are saved so they continue to populate the dropdown when the program is closed and opened again.
 Key functions include insert() for adding new contacts, view() for retrieving all records, search() for querying contacts based on user-provided criteria,
-delete() for removing contacts by their unique ID, and update() for modifying existing contact details. The database schema consists of a single table,
-contact, with columns for ID (primary key), full name, phone number, LinkedIn, Instagram, email, organization, organization type, and Twitter.
+delete() for removing contacts by their unique ID, and update() for modifying existing contact details. The database schema consists of a three tables,
+contact, organizations, and organization_type, with columns for ID (primary key), full name, phone number, LinkedIn, Instagram, email, organization, organization type, and Twitter in the contact table,
+and name columns for the organization and organization type tables.
 
 Together, the frontend and backend work seamlessly to provide a user-friendly application for managing contact information, integrating a robust GUI with efficient database operations.

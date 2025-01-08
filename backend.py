@@ -5,8 +5,11 @@ def connect():
     conn=sqlite3.connect("contacts.db")
     cur=conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS contact (id INTEGER PRIMARY KEY, full_name text, phone_number varchar, linkedin varchar, instagram varchar, email varchar, organization text, org_type text, twitter varchar)")
-    cur.execute("CREATE TABLE IF NOT EXISTS organizations (name TEXT PRIMARY KEY)")
-    cur.execute("CREATE TABLE IF NOT EXISTS organization_type (name TEXT PRIMARY KEY)")
+    cur.execute("""CREATE TABLE IF NOT EXISTS organization (id INTEGER PRIMARY KEY,name TEXT UNIQUE)""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS organization_type (id INTEGER PRIMARY KEY,name TEXT UNIQUE)""")
+        # Insert default values if not already present
+    cur.execute("INSERT OR IGNORE INTO organization (name) VALUES ('Select Organization')")
+    cur.execute("INSERT OR IGNORE INTO organization_type (name) VALUES ('Select Type')")
     conn.commit()
     conn.close()
 
@@ -96,53 +99,51 @@ def update(full_name, phone_number, linkedin, instagram, email, organization, or
     conn.commit()
     conn.close()
 
-def load_options(option_type):
-    conn = sqlite3.connect("contacts.db")
-    cur = conn.cursor()
-    table_name = "organization" if option_type == "organization" else "organization_type"
-    cur.execute(f"SELECT name FROM {table_name}")
-    rows = cur.fetchall()
-    conn.close()
-    return [row[0] for row in rows]
-
-def save_new_option(option_name, option_type):
-    if option_name or option_type in ["Select Organization", "Select Type"]:
-        return "Default Option already exists."
-    conn = sqlite3.connect("contacts.db")
-    cur = conn.cursor()
-    table_name = "organization" if option_type == "organization" else "organization_type"
-    cur.execute(f"INSERT OR IGNORE INTO {table_name} (name) VALUES (?)", (option_name,))
-    conn.commit()
-    conn.close()
-
-def delete_option(option_name, option_type):
-    if option_name or option_type in ["Select Organization", "Select Type"]:
-        return "Cannot delete default option."
-    conn = sqlite3.connect("contacts.db")
-    cur = conn.cursor()
-    table_name = "organization" if option_type == "organization" else "organization_type"
-    cur.execute(f"DELETE FROM {table_name} WHERE name=?", (option_name,))
-    conn.commit()
-    conn.close()
-
-# Fetch all organizations
-def fetch_organizations():
+def get_organizations():
     conn = sqlite3.connect("contacts.db")
     cur = conn.cursor()
     cur.execute("SELECT name FROM organization")
-    rows = cur.fetchall()
+    rows = [row[0] for row in cur.fetchall()]
     conn.close()
     return rows
 
-# Fetch all organization types
-def fetch_organization_types():
+def add_organization(name):
+    conn = sqlite3.connect("contacts.db")
+    cur = conn.cursor()
+    cur.execute("INSERT OR IGNORE INTO organization (name) VALUES (?)", (name,))
+    conn.commit()
+    conn.close()
+
+def delete_organization(name):
+    conn = sqlite3.connect("contacts.db")
+    cur = conn.cursor()
+    cur.execute("DELETE FROM organization WHERE name = ? AND name != 'Select Organization'", (name,))
+    conn.commit()
+    conn.close()
+
+def get_organization_types():
     conn = sqlite3.connect("contacts.db")
     cur = conn.cursor()
     cur.execute("SELECT name FROM organization_type")
-    rows = cur.fetchall()
+    rows = [row[0] for row in cur.fetchall()]
     conn.close()
     return rows
 
-# Create table
+def add_organization_type(name):
+    conn = sqlite3.connect("contacts.db")
+    cur = conn.cursor()
+    cur.execute("INSERT OR IGNORE INTO organization_type (name) VALUES (?)", (name,))
+    conn.commit()
+    conn.close()
+
+def delete_organization_type(name):
+    conn = sqlite3.connect("contacts.db")
+    cur = conn.cursor()
+    cur.execute("DELETE FROM organization_type WHERE name = ? AND name != 'Select Type'", (name,))
+    conn.commit()
+    conn.close()
+
+# Create table and test insertion
 connect()
 print("Application Launched")
+
