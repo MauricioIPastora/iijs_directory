@@ -146,4 +146,3 @@ def delete_organization_type(name):
 # Create table and test insertion
 connect()
 print("Application Launched")
-

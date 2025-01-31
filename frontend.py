@@ -3,12 +3,15 @@ from tkinter import simpledialog
 import backend
 import ctypes
 from PIL import Image, ImageTk
+from tkinter import ttk
+import openpyxl
+from tkinter import filedialog
 
 def get_selected_row(event):
     global selected_tuple
     try:
-        index = list1.curselection()[0]
-        selected_tuple = list1.get(index)
+        selected_item = tree.selection()[0]  # Get selected item
+        selected_tuple = tree.item(selected_item, "values")  # Extract data
         e1.delete(0, END)
         e1.insert(END, selected_tuple[1])
         e2.delete(0, END)
@@ -24,7 +27,6 @@ def get_selected_row(event):
         organization_var.set(selected_tuple[6])
         organization_type_var.set(selected_tuple[7])
     except IndexError:
-        # No item selected
         selected_tuple = None
 
 backspace_active = False
@@ -54,15 +56,15 @@ def delete_character():
         window.after(60, delete_character)
 
 
-#define view command
 def view_command():
-    list1.delete(0,END)
+    for row in tree.get_children():
+        tree.delete(row)  # Clear existing rows
     for row in backend.view():
-        list1.insert(END,row)
+        tree.insert("", END, values=row)  # Insert new rows
 
-#define search command
 def search_command():
-    list1.delete(0, END)
+    for row in tree.get_children():
+        tree.delete(row)  # Clear existing rows
     rows = backend.search(
         full_name=fullname_text.get(),
         phone_number=phonenumber_text.get(),
@@ -74,7 +76,7 @@ def search_command():
         twitter=twitter_text.get()
     )
     for row in rows:
-        list1.insert(END, row)
+        tree.insert("", END, values=row)
 
 #define add commmand
 def add_command():
@@ -88,8 +90,8 @@ def add_command():
         organization_type_var.get(),
         twitter_text.get()
         )
-    list1.delete(0,END)
-    list1.insert(END,
+    tree.delete(0,END)
+    tree.insert(END,
         fullname_text.get(),
         phonenumber_text.get(),
         linkedin_text.get(),
@@ -140,7 +142,7 @@ def add_new_org_option(option_list, dropdown_var, add_function):
 def delete_selected_organization():
     selected_org = organization_var.get()
     if selected_org and selected_org != "Select Organization":
-        delete_organization(selected_org)
+        backend.delete_organization(selected_org)
         organization_options.remove(selected_org)
         organization_var.set("Select Organization")
         update_dropdowns()
@@ -148,7 +150,7 @@ def delete_selected_organization():
 def delete_selected_organization_type():
     selected_org_type = organization_type_var.get()
     if selected_org_type and selected_org_type != "Select Type":
-        delete_organization_type(selected_org_type)
+        backend.delete_organization_type(selected_org_type)
         organization_type_options.remove(selected_org_type)
         organization_type_var.set("Select Type")
         update_dropdowns()
@@ -169,6 +171,37 @@ def update_dropdowns():
     org_type_menu.delete(0, 'end')
     for org_type in organization_type_options:
         org_type_menu.add_command(label=org_type, command=lambda value=org_type: organization_type_var.set(value))
+
+import openpyxl
+from tkinter import filedialog
+
+def export_to_excel():
+    # Prompt the user to select a save location
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".xlsx",
+        filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")]
+    )
+    if not file_path:
+        return  # User canceled the save dialog
+
+    # Create a new Excel workbook
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Contacts"
+
+    # Add column headers
+    headers = ["ID", "Full Name", "Phone Number", "LinkedIn", "Instagram", "Email", "Organization", "Org Type", "Twitter"]
+    sheet.append(headers)
+
+    # Add data from the Treeview
+    for child in tree.get_children():
+        row_data = tree.item(child, "values")
+        sheet.append(row_data)
+
+    # Save the workbook
+    workbook.save(file_path)
+    print(f"Data exported to {file_path}")
+
 
 # Create the window
 window = Tk()
@@ -277,20 +310,33 @@ b5.grid(row=0, column=4, padx=10, pady=10)
 b6 = Button(button_frame, text="Close", **button_style, command=window.destroy)
 b6.grid(row=0, column=5, padx=10, pady=10)
 
+b7 = Button(button_frame, text="Export List", **button_style, command=export_to_excel)
+b7.grid(row=0, column=6, padx=10, pady=10)
+
+
 # Create a frame for the listbox
 listbox_frame = Frame(window, bg="#00609C")
 listbox_frame.grid(row=3, column=0, columnspan=8, pady=20)
 
-# Listbox and Scrollbar
-list1 = Listbox(listbox_frame, height=8, width=70)
-list1.grid(row=0, column=0, padx=10, pady=10)
+# Define Treeview
+columns = ("ID", "Full Name", "Phone Number", "LinkedIn", "Instagram", "Email", "Organization", "Org Type", "Twitter")
+tree = ttk.Treeview(listbox_frame, columns=columns, show="headings", height=8)
 
+# Define column headings
+for col in columns:
+    tree.heading(col, text=col)
+    tree.column(col, width=120, anchor="w")  # Adjust width as needed
+
+tree.grid(row=0, column=0, padx=10, pady=10)
+
+# Scrollbar
 sb1 = Scrollbar(listbox_frame)
 sb1.grid(row=0, column=1, sticky="ns", pady=10)
-list1.configure(yscrollcommand=sb1.set)
-sb1.configure(command=list1.yview)
+tree.configure(yscrollcommand=sb1.set)
+sb1.configure(command=tree.yview)
 
-list1.bind('<<ListboxSelect>>',get_selected_row)
+# Bind selection event
+tree.bind("<<TreeviewSelect>>", get_selected_row)
 
 # Main loop
 window.mainloop()
